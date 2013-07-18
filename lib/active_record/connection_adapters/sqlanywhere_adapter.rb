@@ -86,7 +86,7 @@ module ActiveRecord
 
       db = SA.instance.api.sqlany_new_connection()
       
-      ConnectionAdapters::SQLAnywhereAdapter.new(db, logger, connection_string)
+      ConnectionAdapters::SQLAnywhereAdapter.new(db, logger, connection_string, config)
     end
   end
 
@@ -150,8 +150,9 @@ module ActiveRecord
     end
     
     class SQLAnywhereAdapter < AbstractAdapter
-      def initialize( connection, logger, connection_string = "") #:nodoc:
+      def initialize( connection, logger, connection_string = "", config = {}) #:nodoc:
         super(connection, logger)
+        @config = config.symbolize_keys
         @auto_commit = true
         @affected_rows = 0
         @connection_string = connection_string
@@ -626,7 +627,7 @@ SQL
           when 484 # DT_DECIMAL (also and more importantly numeric)
             BigDecimal.new(value)
           when 448,452,456,460,640  # DT_VARCHAR, DT_FIXCHAR, DT_LONGVARCHAR, DT_STRING, DT_LONGNVARCHAR
-            value.force_encoding(ActiveRecord::Base.connection_config[:encoding] || "UTF-8")
+            value.force_encoding(@config[:encoding] || "UTF-8")
           else
             value
           end
